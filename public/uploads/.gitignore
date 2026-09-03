@@ -1,0 +1,4 @@
+# Client-uploaded images from /admin. Regenerated locally; commit if the host
+# cannot persist filesystem writes (prefer object storage in production).
+*
+!.gitignore

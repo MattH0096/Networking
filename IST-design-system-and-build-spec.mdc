@@ -1,0 +1,596 @@
+# IST Website — Design System & Build Spec
+
+**Use this as project rules for an AI coding agent.**
+
+- **Cursor:** save as `.cursor/rules/ist-design.mdc` (set `alwaysApply: true`) or as `AGENTS.md` at repo root.
+- **Kiro:** save as `.kiro/steering/ist-design.md` with front matter `inclusion: always`.
+- **One-shot prompt:** paste the whole file, then add: *"Build the homepage first, desktop and mobile, following this spec exactly. Stop and show me before moving to other pages."*
+
+Assume **Next.js (App Router) + TypeScript + Tailwind** unless the repo already says otherwise. Motion via CSS + Intersection Observer; reach for a library only where it earns its weight.
+
+---
+
+## 0. Who the client is and what the site must do
+
+Integrated Switching Technologies (IST) builds resilient networking for environments where connectivity breaks: satellites moving out of view, drones behind terrain, ships past the horizon, robots losing line of sight. Conventional networks treat those interruptions as failures. IST treats them as the operating environment.
+
+Two products ship today — **Locus** (assured data distribution engine) and **Crucible** (mission simulation and validation). Three more stack layers are in development and are deliberately unnamed.
+
+**The site must read as a platform company, not a two-product startup.** Audience is mixed: technical buyers, program leads, investors, and non-technical partners.
+
+**The 10-second test.** Within ten seconds a visitor understands: what problem IST solves, who it serves, why it matters, and what to do next. If a section doesn't move one of those four forward, cut it.
+
+Quality bar and tone reference: `cesiumastro.com`, `spaceapp.org` — dark, mission-critical, serious without being impenetrable. **Do not copy their layouts or identity.** Reference only.
+
+---
+
+## 1. HARD CONSTRAINTS — violating any of these fails acceptance
+
+These exist because AI agents reliably invent exactly this kind of content. Do not.
+
+| # | Rule |
+|---|---|
+| 1 | **No fabricated metrics.** No "99.9% uptime", no "500+ nodes", no counters, no stat bands, no testimonials, no valuations. If a layout wants a number, use the literal token `{{TBD}}` and flag it in your summary. |
+| 2 | **No fabricated UI screenshots.** No mock dashboards, no invented telemetry panels, no fake Locus or Crucible interfaces. Use clean illustrated diagrams instead. |
+| 3 | **No names for unreleased products.** The hardware, interoperability, and ecosystem layers are unnamed. Do not invent names, specs, or capability copy for them. Approved labels only: `In Development`, `Coming Soon`, `Details coming soon`. |
+| 4 | **No email address anywhere on the public site.** Not in the footer, not in schema markup, not in a `mailto:`. All contact routes through the form to a backend address. |
+| 5 | **No customer, investor, advisor, partner, or government logos.** No logo wall. No "trusted by" strip. |
+| 6 | **No founder bio, name, employer history, or headshot.** Not in this version. |
+| 7 | **No fabricated news posts.** Build the News page design and filter system; leave the content array empty with a documented shape. |
+| 8 | **No invented features or partnerships.** Only capabilities described in this document. |
+| 9 | **Do not generate a logo.** Reference `/public/brand/ist-logo.svg` and leave a placeholder if absent. Never redraw or "improve" the mark. |
+| 10 | **Strip all ecommerce artifacts** — cart icons, shop links, product/price schema, checkout routes — if any exist in the starting template. |
+| 11 | **Never use the line "the future will not be one giant network."** It contradicts the hardware and interoperability roadmap. |
+| 12 | **Copy marked `[LOCKED]` ships verbatim.** You may adjust line breaks. You may not reword. |
+
+When in doubt, say less. Restraint is the brand.
+
+---
+
+## 2. Art direction
+
+**Thesis:** the page behaves like the network it describes. Connections are solid, intermittent, or absent — and the site says so in its own structural language rather than through decoration.
+
+**Signature element — the link-state rule.** A hairline system used consistently sitewide:
+
+- **Solid rule** = established, shipping, connected. (Locus, Crucible, current capabilities.)
+- **Dashed rule** = intermittent, in development. (Unnamed stack layers, forward-looking copy.)
+- **Absent / faded rule** = not yet, no connection.
+
+Apply it to section dividers, card borders, the stack diagram, list markers, and the timeline in "How It Works." On hover, a dashed rule animates to solid over 400ms — the interaction *is* the product metaphor. This is the one place to spend boldness. Keep everything else quiet.
+
+**What to avoid:** the glowing-nodes-on-black particle field is ubiquitous in this category and actively undermines differentiation. If you build a network visualization, make it geometric, precise, and legible — engineering diagram, not screensaver. No lens flares, no bloom, no rainbow gradients, no glassmorphism.
+
+---
+
+## 3. Design tokens
+
+Framework-agnostic CSS variables. Every color and size in the build derives from these — no ad-hoc hex values, no arbitrary Tailwind values like `text-[#ff6600]`.
+
+```css
+:root {
+  /* Surfaces — brief-specified. Avoid flat medium gray anywhere. */
+  --ist-bg:            #0D0D0D;  /* page base */
+  --ist-surface:       #141414;  /* cards, panels */
+  --ist-surface-raised:#1A1A1A;  /* hover, modals, nav overlay */
+
+  /* Lines */
+  --ist-line:          #262626;  /* hairline dividers, card borders */
+  --ist-line-strong:   #333333;  /* emphasis rules */
+
+  /* Text — warm white, never blue-white */
+  --ist-text:          #F0EDE8;  /* primary */
+  --ist-text-muted:    #A8A29B;  /* secondary body, 7.7:1 */
+  --ist-text-dim:      #8A857E;  /* captions, eyebrows, 5.3:1 — dimmest allowed */
+
+  /* Accent — burnt orange / copper, restrained */
+  --ist-accent:        #C45200;  /* fills, rules, large display accents */
+  --ist-accent-bright: #F07422;  /* links + small text on dark, 6.7:1 */
+  --ist-accent-deep:   #8F3C00;  /* pressed states, dense backgrounds */
+  --ist-accent-wash:   rgba(196, 82, 0, 0.08); /* tints, hover fills */
+
+  /* Focus */
+  --ist-focus:         #F07422;
+
+  /* Radii — near-square. Deep tech, not consumer SaaS. */
+  --r-sm: 2px;
+  --r-md: 4px;
+  --r-lg: 6px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 180ms;
+  --dur-base: 320ms;
+  --dur-slow: 600ms;
+}
+```
+
+**Contrast rules — do not deviate:**
+
+- `--ist-accent` (#C45200) is **4.2:1** on the black background. **It fails AA for body-size text.** Use it for fills, rules, icons, and display type ≥24px bold only.
+- For links and any orange text under 24px, use `--ist-accent-bright` (#F07422) — 6.7:1. ✓
+- On a solid `--ist-accent` fill, button labels must be **pure `#FFFFFF`** (4.6:1 ✓). `--ist-text` on orange is 3.9:1 and fails. Alternatively use ≥18.66px bold.
+- Never place `--ist-text-dim` on anything lighter than `--ist-surface-raised`.
+
+**Tailwind v4** — map in your CSS entry:
+
+```css
+@theme {
+  --color-ist-bg: var(--ist-bg);
+  --color-ist-surface: var(--ist-surface);
+  --color-ist-line: var(--ist-line);
+  --color-ist-text: var(--ist-text);
+  --color-ist-muted: var(--ist-text-muted);
+  --color-ist-dim: var(--ist-text-dim);
+  --color-ist-accent: var(--ist-accent);
+  --color-ist-accent-bright: var(--ist-accent-bright);
+}
+```
+
+Accent usage budget: **no more than three orange elements visible in any single viewport.** If a fourth appears, demote it to `--ist-text-muted`.
+
+---
+
+## 4. Typography
+
+*Designer's call — swap the families if you have a stronger pairing, but keep the roles and the scale.*
+
+| Role | Face | Why |
+|---|---|---|
+| Display | **Archivo** (variable, use the Expanded width axis at 110–125% for the hero) | Wide industrial grotesque. Reads as signage and instrumentation, not startup-default. Avoids Inter and Space Grotesk, both of which are the category cliché. |
+| Body | **IBM Plex Sans** | Engineering heritage, humanist warmth, excellent at 16–18px on dark. |
+| Utility | **IBM Plex Mono** | Eyebrows, section numbers, status tags, data labels, the four-step flow keys. |
+
+Load via `next/font` with `display: swap`. Subset latin. Preload the display weight used above the fold.
+
+**Type scale** (fluid via `clamp`, mobile → desktop):
+
+```
+Hero      clamp(2.75rem, 7vw, 6.5rem)   Archivo Expanded 700 / 0.94 lh / -0.03em
+H1        clamp(2.25rem, 4.5vw, 3.75rem) Archivo 600 / 1.05 lh / -0.02em
+H2        clamp(1.75rem, 3vw, 2.5rem)    Archivo 600 / 1.15 lh / -0.015em
+H3        clamp(1.25rem, 2vw, 1.5rem)    Archivo 600 / 1.25 lh
+Lead      clamp(1.125rem, 1.6vw, 1.375rem) Plex Sans 400 / 1.55 lh / --ist-text-muted
+Body      1rem (16px min, never smaller) Plex Sans 400 / 1.65 lh
+Small     0.875rem                        Plex Sans 400 / 1.6 lh
+Eyebrow   0.75rem                         Plex Mono 500 / 0.14em tracking / UPPERCASE / --ist-text-dim
+Tag       0.6875rem                       Plex Mono 500 / 0.1em tracking / UPPERCASE
+```
+
+Body copy max width: **68ch**. Lead paragraphs: **54ch**. Never full-bleed text.
+
+Sentence case for headings — not Title Case. Uppercase is reserved for eyebrows and status tags, which is what makes it read as instrumentation.
+
+---
+
+## 5. Layout & spacing
+
+- Container: `max-width: 1280px`, gutters `24px` mobile / `48px` tablet / `80px` desktop.
+- Grid: 12-column desktop, 6-column tablet, 4-column mobile. `gap: 24px`.
+- Section rhythm: `clamp(80px, 10vw, 160px)` vertical padding. Apply padding on the section element only — **never** mix section-level and element-level margins for the same spacing, it's the most common source of collapsing-margin bugs in this kind of build.
+- Spacing scale: `4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 · 96 · 128`. Nothing off-scale.
+- Sections alternate `--ist-bg` and `--ist-surface` to create rhythm without adding borders everywhere.
+- Section headers get a mono eyebrow + a solid 1px accent rule 48px wide above the H2.
+
+---
+
+## 6. Component inventory
+
+Build these once, reuse everywhere. Storybook-style isolation is fine but not required.
+
+| Component | Notes |
+|---|---|
+| `Button` | Variants: `primary` (solid `--ist-accent`, `#FFF` label), `secondary` (1px `--ist-line-strong` border, `--ist-text` label, border → accent on hover), `ghost` (text + arrow, underline animates in). Min tap target 44×44. **Never full-width on mobile** — max 88% with margins. |
+| `SectionHeader` | Mono eyebrow, accent rule, H2, optional lead. |
+| `LinkRule` | The signature. Props: `state: 'connected' | 'intermittent' | 'absent'`. Renders solid / dashed / 20%-opacity hairline. |
+| `Card` | `--ist-surface`, 1px `--ist-line` border, `--r-md`. Hover: border → `--ist-accent` at 40%, translateY(-2px), 180ms. |
+| `StepCard` | Mono key (STORE / ROUTE / ADAPT / DELIVER), icon, title, body. Used on both product pages. |
+| `FeatureTile` | Icon + short title + one-line body. |
+| `StackLayer` | Row with layer name, product name or `—`, status tag. Status: `CURRENT` (accent, solid rule) / `IN DEVELOPMENT` (muted, dashed rule) / `COMING SOON` (dim, dashed rule). |
+| `ApplicationTile` | Photographic background, dark gradient scrim (`rgba(13,13,13,0.35)` → `0.85`), label + one line. |
+| `NetworkDiagram` | SVG, hand-authored. Solid / dashed / absent links, packets in transit, stored at intermediate nodes, final state = all nodes complete. Animated on scroll into view. |
+| `Nav` | Sticky, transparent over hero → `--ist-surface` with backdrop blur after 80px scroll. Mobile: full-screen overlay on `--ist-surface-raised` — **`--ist-text` on `--ist-surface-raised`, never dark text on dark gray.** |
+| `Footer` | Nav columns, LinkedIn + X only, "Denver, Colorado, USA", legal. **No email.** |
+| `ContactForm` | Fields below. Inline validation, visible error text, success state that replaces the form. |
+| `GatedDownload` | Name + email → paper PDF. Insights page. |
+
+Icons: single-weight line icons, 1.5px stroke, 24px grid, monochrome `--ist-text-muted`, accent on hover. Lucide or a custom set. No filled/duotone/3D icons.
+
+---
+
+## 7. Motion
+
+Deliberate and few. Extra animation is what makes a site read as generated.
+
+| Where | Behavior |
+|---|---|
+| Scroll reveal | `opacity 0→1`, `translateY 16px→0`, `--dur-slow`, `--ease-out`. Stagger children 60ms. Fires once at 20% visibility. |
+| Hero | Headline reveals in two lines, 120ms apart, on load. Support line follows at 400ms. Nothing loops. |
+| Parallax | Hero and Vision background images move at ~0.4× scroll speed. `transform` only — never `background-position`. |
+| Network diagram | Nodes connect in sequence, packets traverse, dashed links resolve to solid. ~4s, plays once on scroll-in, replays on hover. |
+| Stack reveal | Five layers animate in sequentially, 100ms apart, top to bottom. Live layers land solid; in-development layers land dashed. |
+| Hover | Buttons and tiles: 180ms border/color shift, ≤2px lift, ≤1.02 image scale. Nothing bouncy, no springs. |
+
+**Mandatory:**
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+```
+
+Everything must be fully readable and usable with motion disabled. No content that only appears via animation.
+
+---
+
+## 8. Mobile & accessibility floor
+
+Mobile is a non-negotiable requirement, not a resize pass.
+
+- Hero headline breaks as **"Every Device." / "Any Network."** — never a single orphaned word.
+- Body text ≥16px with ≥1.6 line height. No exceptions.
+- Zero horizontal scroll at 320px. Test tables, diagrams, cards.
+- Diagrams **simplify** responsively — fewer nodes, stacked layout, larger labels. Do not shrink the desktop SVG.
+- Buttons comfortably tappable, not full-bleed.
+- Nav overlay contrast checked against `--ist-surface-raised`.
+- Logo crisp at phone size — SVG, no raster fallback.
+- Stack section reflows to a vertical list with status tags inline.
+
+Accessibility floor: semantic landmarks, one `h1` per page, visible focus ring (`2px solid var(--ist-focus)`, `2px` offset), keyboard-navigable everything, `alt` text on all imagery, decorative SVG `aria-hidden`, forms with real `<label>` elements, AA contrast throughout.
+
+Performance: LCP < 2.5s, CLS < 0.1. `next/image` with explicit dimensions. Lazy-load below the fold. Total JS budget under 200KB gzipped.
+
+---
+
+## 9. Page specs
+
+### 9.1 Homepage — ten sections in this order
+
+**1 — Hero** `[LOCKED]`
+
+> # Every Device. Any Network.
+
+Full viewport height. Real operational photography or a restrained geometric treatment behind it — no particle field. Primary CTA: **See How It Works**.
+
+**2 — Support line** `[LOCKED]`
+
+> The world is becoming autonomous. Communication was not built for that future. IST was.
+
+**3 — The Problem** `[LOCKED]`
+
+> ## Today's networks assume perfect connectivity. Reality does not.
+>
+> Satellites move. Drones fly behind mountains. Ships disappear beyond the horizon. Robots lose line of sight. Conventional systems treat these interruptions as failures. IST treats them as the environment the network must survive.
+
+Those four short sentences are the strongest rhythm on the page — set them as individual lines with dashed link-rules between them, revealing on scroll.
+
+**4 — The Solution** `[LOCKED]`
+
+> ## Networks should adapt. Not break.
+>
+> IST intelligently stores, routes, and delivers information through changing networks until every intended destination receives what it needs. Missions should not stop simply because connectivity changes.
+
+**5 — How It Works** `[LOCKED sequence]`
+
+> Networks change → IST adapts → information keeps moving → mission continues.
+
+Short visual sequence with satellites, drones, robots, maritime assets. **Not a wall of text.** Do not claim capabilities beyond the four steps above.
+
+**6 — Locus** — Assured data distribution engine. Current, shipping. CTA: **Explore Locus**.
+
+**7 — Crucible** — Simulation, validation, mission visualization. Current, shipping. CTA: **Explore Crucible**.
+
+**8 — Applications** — six tiles, see §9.5.
+
+**9 — The Stack Signal** — the strategic center of the page. Five layers, exactly this:
+
+| Layer | Product | Status |
+|---|---|---|
+| Distribution Software | Locus | **CURRENT** |
+| Simulation & Validation | Crucible | **CURRENT** |
+| Network Processing Hardware | — | In Development |
+| Protocol Interoperability | — | In Development |
+| Developer Ecosystem | — | Coming Soon |
+
+No names for unreleased layers. No capability descriptions for them. The restraint is the message — a sophisticated reader should infer a full stack without being told.
+
+**10 — Vision + CTA** `[LOCKED]`
+
+> IST is building toward a world where every device, on any network, can communicate intelligently — regardless of topology, protocol, or environment. That future requires rethinking networking from the ground up. That is what we are doing.
+
+CTA: **Discuss a Mission**.
+
+**CTA vocabulary — use these exact strings sitewide:**
+`See How It Works` · `Explore Locus` · `Explore Crucible` · `Discuss a Mission` · `Contact IST`
+
+---
+
+### 9.2 Solutions page
+
+Header `[LOCKED]`:
+
+> # Solutions Built for Dynamic, Intermittent Networks
+>
+> IST delivers the software, simulation, and hardware needed to operate with confidence in the most challenging environments.
+
+Three-column layout. Equal visual weight — the hardware column carries the platform signal and must not look like an afterthought.
+
+| Column | Eyebrow | Title | Body |
+|---|---|---|---|
+| 1 | SOFTWARE | Locus: Assured Distribution Engine | Ensures mission-critical information reaches every destination through dynamic, intermittently connected networks until delivery is complete. |
+| 2 | SOFTWARE | Crucible: Mission Simulation & Validation | Visualize, test, and refine your mission and network before deployment so you can move forward with confidence. |
+| 3 | HARDWARE | Programmable Hardware That Adapts to Any Environment | IST hardware is designed for performance, flexibility, and integration across air, space, land, and sea. **Details coming soon.** |
+
+Column 3 has no product name and no CTA link. `Details coming soon` is the approved language — add nothing to it. Give it a dashed border to columns 1–2's solid.
+
+---
+
+### 9.3 Locus product page
+
+Header `[LOCKED]`:
+
+> # Locus: Assured Distribution for the Real World
+>
+> Locus is IST's assured distribution engine. It ensures mission-critical information continues moving through dynamic, intermittently connected networks until delivery is complete.
+
+**Four-step flow** — icons + mono keys:
+
+| Key | Title | Body |
+|---|---|---|
+| STORE | Intelligently Store | Critical data is stored across the network — never lost, always available for forward delivery. |
+| ROUTE | Find the Best Path | Locus continuously evaluates available links and routes information along the optimal available path. |
+| ADAPT | Dynamically Adjust | As conditions change, Locus adjusts in real time — rerouting, resequencing, and recovering without operator intervention. |
+| DELIVER | Ensure Every Destination | Delivery is not complete until every intended recipient has the complete payload. Not most. All. |
+
+*"Not most. All."* is the sharpest line in the brief. Give it typographic weight — own line, display face, accent color.
+
+**Diagram** — illustrated, never a screenshot. Diverse assets (satellites, drones, ground vehicles, ships). Some links solid, some dashed, some absent. Packets in transit, stored at intermediate nodes, completing via alternate paths. Final state: every node holds the complete payload.
+
+**Feature tiles** — four columns:
+
+1. **Works in disconnected and degraded networks** — Built for the real world, not ideal conditions.
+2. **Efficient bandwidth utilization** — Uses every opportunity to move data forward — no wasted capacity.
+3. **End-to-end data integrity** — Protects information from source to delivery — no partial payloads.
+4. **Built for mission-critical systems** — Designed for the highest standards of reliability.
+
+**Why Customers Choose IST:**
+
+- **Mission-first** — Built for intermittent networks from the ground up — not adapted from enterprise software.
+- **Platform-agnostic** — Integrates with existing infrastructure. No ground-side changes required.
+- **Single-node insertion** — Delivers immediate value from day one. Scales linearly as adoption grows.
+- **Simulation before deployment** — Crucible validates Locus configurations before they go into the field.
+
+---
+
+### 9.4 Crucible product page
+
+Header `[LOCKED]`:
+
+> # Crucible: Simulate. Validate. Deploy with Confidence.
+>
+> Before deployment, watch your mission come to life. Build your network. Move your assets. See how terrain, movement, and interference impact connectivity — and how IST keeps information flowing.
+
+**Four-step flow:**
+
+| Key | Title | Body |
+|---|---|---|
+| BUILD | Build Your Environment | Create realistic terrain, obstacles, and conditions. Import real-world geography or define custom mission environments. |
+| MODEL | Model Your Assets | Add satellites, drones, ships, robots, ground stations — configure their movement profiles and link parameters. |
+| SIMULATE | Simulate Real Conditions | Test movement, interference, terrain effects, and network dynamics across the full mission timeline. |
+| VALIDATE | Validate Performance | Measure results, identify failure points, and optimize before you deploy. Know before you go. |
+
+**Question checklist** — six items with checkmarks:
+
+- Will my network reach every asset?
+- How does terrain affect connectivity?
+- What happens if a node is lost?
+- How do interference and jamming impact performance?
+- How does movement affect link quality over time?
+- How much bandwidth do I actually need?
+
+⚠️ **No fabricated Crucible UI.** The interface does not yet exist in a form approved for public display. Illustrated diagram of the simulation concept only — terrain, assets, links, data flow. No mock dashboards. No invented metrics.
+
+**Future framing** — approved as vision, clearly not present capability. Use phrasing like *"designed for extensibility"* and *"built to support a future developer ecosystem"* covering plugins, mission profiles, terrain datasets, custom asset types, distribution algorithms. **Do not imply a marketplace exists today.** Set this block visually apart — dashed rules, dimmer treatment, a `FUTURE` mono tag.
+
+---
+
+### 9.5 Applications section
+
+Header `[LOCKED]`:
+
+> # Built for the Missions That Matter Most.
+>
+> IST solutions enable reliable communication across a wide range of industries and mission-critical applications.
+
+Six tiles, **real operational photography** — not abstract AI graphics:
+
+| Tile | Line |
+|---|---|
+| SPACE | Reliable data delivery for satellites, constellations, and space systems. |
+| DEFENSE | Secure, resilient communications for military and multi-domain operations. |
+| DRONES & UAS | Persistent connectivity for drone teams and autonomous systems. |
+| MARITIME | Connectivity beyond the horizon for ships and maritime operations. |
+| EMERGENCY RESPONSE | Dependable communication that reaches every responder, every time. |
+| INDUSTRIAL IoT | Reliable connectivity for remote and distributed operations. |
+
+Closer `[LOCKED]`:
+
+> ## One Platform. Countless Possibilities.
+>
+> From space to sea, air to ground — IST keeps your critical information moving so your mission never stops.
+
+CTA: **Explore All Solutions →** → `/solutions`
+
+---
+
+### 9.6 About page
+
+Header: **The Engineers Behind IST**
+
+Sub: IST was founded by engineers with experience building the systems that power defense, space, and critical infrastructure.
+
+⚠️ No founder biography, name, employer history, or headshot. No fabricated metrics — no years-of-experience totals, programs supported, business value, or jurisdictions.
+
+**Approved copy `[LOCKED]`:**
+
+> Connected systems are reshaping every critical domain — defense, space, logistics, infrastructure. That transformation demands more performance from the underlying technology than it was ever designed to deliver. IST was founded to change that. We are an advanced technology company focused on the intersection of intelligent systems, distributed computing, and next-generation hardware. Our work is grounded in deep engineering discipline and driven by a belief that the most critical infrastructure in the world deserves better than the solutions it currently has. We build for the long term — starting with today's hardest problems and engineering toward a future where connected systems are smarter, more resilient, and more capable than anyone thought possible.
+
+**Vision cards** — two tiles side by side:
+
+- **Our Mission** — To make resilient communication possible anywhere, for any mission, at any time.
+- **Our Vision** — A world where every device, on any network, communicates intelligently — regardless of topology, protocol, or environment.
+
+---
+
+### 9.7 News page
+
+Header: **Latest News & Updates** / Stay informed on partnerships, milestones, product updates, and company news.
+
+Filters: `All · Company · Partnerships · Product · Media`
+
+⚠️ **Design and filter system only.** Ship with an empty posts array and a documented type:
+
+```ts
+type NewsPost = {
+  slug: string;
+  title: string;
+  category: 'company' | 'partnerships' | 'product' | 'media';
+  date: string;      // ISO
+  excerpt: string;
+  image?: string;
+  body: string;      // MDX
+};
+```
+
+Build a real empty state: *"No posts in this category yet."* Do not seed placeholder headlines.
+
+---
+
+### 9.8 Insights page
+
+> IST is committed to advancing the state of the art in networked systems. This page serves as our hub for technical white papers, research publications, and industry perspectives.
+
+One paper tile:
+
+- **Title:** Distribution Completeness in Dynamic Mesh Networks: The Missing Layer
+- **Series:** IST Technical Research Series
+- **Date:** July 2026
+- **Access:** Gated download — name + email required
+
+Gate flow: form → validate → POST to backend → serve PDF. Do not expose the file path before submission.
+
+---
+
+### 9.9 Careers page
+
+> # Build Something That Matters.
+>
+> IST is building technology that does not exist yet — and we are looking for the engineers who want to build it with us. We are a small, focused team operating at the frontier of networked systems, and every person we hire has an outsized impact on what we build and how we build it.
+
+Hiring line `[LOCKED]`:
+
+> The technology of tomorrow needs the brightest minds of today. If you thrive on hard challenges, love the pace of real innovation, and want high autonomy with the responsibility to match — come help build something that matters. Get in on the ground floor.
+
+Plus a reusable job-posting tile template. No invented roles — ship the template with an empty listings array.
+
+---
+
+### 9.10 Contact page
+
+> # Let's Build the Future of Resilient Communication Together.
+>
+> Whether you have a mission challenge, partnership opportunity, or just want to learn more — we'd love to hear from you.
+
+**Fields:** Full Name · Work Email · Company/Organization · I'm interested in (dropdown) · Message
+
+Dropdown options: Locus · Crucible · Hardware · Partnership · Careers · Other
+
+⚠️ **No email address displayed.** Route through the form to a backend address held in an environment variable. Include honeypot + rate limiting.
+
+Approved to display: office location **Denver, Colorado, USA**. Social links: **LinkedIn and X only** — no other platforms, and confirm URLs before shipping.
+
+---
+
+## 10. Imagery
+
+Prioritize **real operational photography** — satellites, ships, drones, command centers, field environments. Where product screenshots or simulation captures exist and are approved, use them. Where they don't, use high-quality photorealistic imagery of real operational environments.
+
+The glowing-nodes-on-dark-background AI graphic is everywhere in this category and undermines differentiation. Avoid it.
+
+Treatment: desaturate 10–20%, warm the shadows slightly toward the palette, apply a `--ist-bg` gradient scrim so text always sits at AA contrast. Consistent across every image.
+
+All images are directional placeholders until explicitly marked approved. Reference paths under `/public/img/` and list every one you used in your build summary so they can be swapped.
+
+---
+
+## 11. Build order
+
+Work in this sequence. Stop for review after each numbered stage.
+
+1. **Foundation** — tokens, fonts, Tailwind theme, base layout, Nav, Footer, `Button`, `LinkRule`. Show a tokens page proving color, type, and spacing.
+2. **Homepage desktop** — all ten sections, static first, no motion.
+3. **Homepage mobile** — 320 / 375 / 768 breakpoints. Verify against §8 line by line.
+4. **Motion pass** — scroll reveals, hero sequence, stack reveal, network diagram. Verify `prefers-reduced-motion`.
+5. **Product pages** — Locus, then Crucible.
+6. **Solutions + Applications.**
+7. **About, News, Insights, Careers, Contact.**
+8. **QA pass** — run the checklist in §12 and report results item by item.
+
+At the end of each stage, report: what you built, every placeholder you left, every `{{TBD}}` token, and anything in the spec you had to interpret.
+
+---
+
+## 12. Acceptance checklist
+
+Run this before declaring done. Report pass/fail per line — do not summarize.
+
+**Content integrity**
+- [ ] Zero fabricated metrics, statistics, testimonials, or counters anywhere
+- [ ] Zero fabricated UI screenshots — all product visuals are illustrated diagrams
+- [ ] Zero names, specs, or descriptions for unreleased hardware/interop/ecosystem layers
+- [ ] Zero email addresses in markup, copy, schema, or `mailto:` links
+- [ ] Zero customer, investor, advisor, partner, or government logos
+- [ ] Zero founder bio, name, employer history, or headshot
+- [ ] News page contains no placeholder posts
+- [ ] No ecommerce, cart, or shop artifacts anywhere in the codebase
+- [ ] All `[LOCKED]` copy matches verbatim
+- [ ] Every `{{TBD}}` token listed in the handoff summary
+
+**Design**
+- [ ] Every color resolves to a token — no arbitrary hex values
+- [ ] Accent orange never used for text under 24px (use `--ist-accent-bright`)
+- [ ] Max three orange elements per viewport
+- [ ] Link-state rule system applied consistently: solid = current, dashed = in development
+- [ ] Stack section shows exactly five layers with correct status labels
+
+**Responsive**
+- [ ] Hero breaks as two clean lines on mobile, no orphans
+- [ ] No horizontal scroll at 320px on any page
+- [ ] All body text ≥16px
+- [ ] Nav overlay passes contrast on mobile
+- [ ] Buttons tappable and not full-bleed
+- [ ] Diagrams genuinely simplify on mobile rather than shrinking
+- [ ] Stack section reflows cleanly on narrow screens
+
+**Quality**
+- [ ] AA contrast throughout, verified
+- [ ] Visible keyboard focus on every interactive element
+- [ ] `prefers-reduced-motion` fully respected
+- [ ] Contact form validates, submits, and shows a real success state
+- [ ] Insights gated download works end to end
+- [ ] Lighthouse: Performance ≥90, Accessibility 100, Best Practices ≥95
+
+---
+
+## 13. Standing note for the agent
+
+IST is an early-stage platform company. The site should look and feel like the company it is becoming, not just the two products shipping today.
+
+**Signal boldly. Claim only what is true.**
+
+If you think a section could be communicated better, say so in your summary and propose it — this is a collaboration, not a pixel-matching exercise. But never resolve ambiguity by inventing content. When the spec doesn't cover something, ask or leave a documented placeholder.

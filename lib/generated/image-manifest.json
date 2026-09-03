@@ -1,0 +1,167 @@
+{
+  "app-defense": {
+    "src": "/img/app-defense.webp",
+    "width": 1100,
+    "height": 825
+  },
+  "app-drones-uas": {
+    "src": "/img/app-drones-uas.webp",
+    "width": 1100,
+    "height": 825
+  },
+  "app-emergency-response": {
+    "src": "/img/app-emergency-response.webp",
+    "width": 1100,
+    "height": 619
+  },
+  "app-industrial-iot": {
+    "src": "/img/app-industrial-iot.webp",
+    "width": 1100,
+    "height": 825
+  },
+  "app-maritime": {
+    "src": "/img/app-maritime.webp",
+    "width": 1100,
+    "height": 825
+  },
+  "app-space": {
+    "src": "/img/app-space.webp",
+    "width": 1100,
+    "height": 825
+  },
+  "band-one-platform": {
+    "src": "/img/band-one-platform.webp",
+    "width": 2172,
+    "height": 724
+  },
+  "band-vision": {
+    "src": "/img/band-vision.webp",
+    "width": 1600,
+    "height": 640
+  },
+  "crucible-terrain-sim": {
+    "src": "/img/crucible-terrain-sim.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "locus-network-in-action": {
+    "src": "/img/locus-network-in-action.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "map-denver": {
+    "src": "/img/map-denver.webp",
+    "width": 1448,
+    "height": 1051
+  },
+  "section-problem": {
+    "src": "/img/section-problem.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "section-solution": {
+    "src": "/img/section-solution.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "step-info-moving": {
+    "src": "/img/step-info-moving.webp",
+    "width": 1100,
+    "height": 733
+  },
+  "step-ist-adapts": {
+    "src": "/img/step-ist-adapts.webp",
+    "width": 1100,
+    "height": 733
+  },
+  "step-mission-continues": {
+    "src": "/img/step-mission-continues.webp",
+    "width": 1100,
+    "height": 733
+  },
+  "step-networks-change": {
+    "src": "/img/step-networks-change.webp",
+    "width": 1100,
+    "height": 733
+  },
+  "locus-distribution": {
+    "src": "/img/locus-distribution.webp",
+    "width": 1600,
+    "height": 672
+  },
+  "crucible-questions-terrain": {
+    "src": "/img/crucible-questions-terrain.webp",
+    "width": 1529,
+    "height": 1029
+  },
+  "solution-locus": {
+    "src": "/img/solution-locus.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "solution-crucible": {
+    "src": "/img/solution-crucible.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "solution-hardware": {
+    "src": "/img/solution-hardware.webp",
+    "width": 1536,
+    "height": 1024
+  },
+  "insights-hero": {
+    "src": "/img/insights-hero.webp",
+    "width": 1672,
+    "height": 941
+  },
+  "band-contact-help": {
+    "src": "/img/band-contact-help.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "band-careers-lead": {
+    "src": "/img/band-careers-lead.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "about-mission": {
+    "src": "/img/about-mission.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "about-vision": {
+    "src": "/img/about-vision.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "news-hero": {
+    "src": "/img/news-hero.webp",
+    "width": 1672,
+    "height": 941
+  },
+  "news-spaceapp": {
+    "src": "/img/news-spaceapp.webp",
+    "width": 1672,
+    "height": 941
+  },
+  "news-research-series": {
+    "src": "/img/news-research-series.webp",
+    "width": 1672,
+    "height": 941
+  },
+  "about-statement": {
+    "src": "/img/about-statement.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "insights-cover": {
+    "src": "/img/insights-cover.webp",
+    "width": 1024,
+    "height": 1536
+  },
+  "section-missing-layer": {
+    "src": "/img/section-missing-layer.webp",
+    "width": 1600,
+    "height": 900
+  }
+}

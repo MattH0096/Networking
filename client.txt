@@ -1,0 +1,1 @@
+Still needs client assets Application tile images (except Emergency Response) and Denver map are still ChatGPT placeholders. The PDF wants real operational photography. Drop approved photos into individual image/ and update tools/imgkit/assets.config.mjs, then run npm run assets.
