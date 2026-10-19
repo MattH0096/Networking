@@ -1,48 +1,59 @@
 import "server-only";
 
-import { readFile } from "node:fs/promises";
-import path from "node:path";
+import { readOverrides, readPrivatePaper } from "@/lib/cms/store";
 
 /**
  * Server-side resolution of gated papers.
  *
- * Files live in `private/papers/`, outside `public/`, so nothing in this
- * directory is reachable by URL. The only way to obtain one is to pass the gate
- * in `app/api/insights/[slug]/download`, which streams the bytes back rather
- * than redirecting to a location the visitor could then share.
+ * Preferred path: admin-uploaded PDF stored privately (`pdfStorageKey` on the
+ * CMS paper). Legacy seed files still live in `private/papers/` and are mapped
+ * below so existing listings keep working until replaced in admin.
  *
- * {{TBD}} — the PDF itself has not been supplied. Drop it at the `file` path
- * below and the flow works with no code change; until then the route answers
- * with an honest "not yet available" rather than a broken download.
+ * Files are never under `public/`. The only way to obtain one is to pass the
+ * gate in `app/api/insights/[slug]/download`.
  */
 
-const PAPER_DIR = path.join(process.cwd(), "private", "papers");
-
-const FILES: Record<string, { file: string; downloadAs: string }> = {
+const LEGACY_FILES: Record<string, { file: string; downloadAs: string }> = {
   "distribution-completeness": {
-    file: "distribution-completeness-in-dynamic-mesh-networks.pdf",
+    file: "IST_Whitepaper.pdf",
     downloadAs: "IST-Distribution-Completeness-in-Dynamic-Mesh-Networks.pdf",
   },
 };
 
 export type PaperFile = { bytes: Buffer; downloadAs: string };
 
-export async function loadPaper(slug: string): Promise<PaperFile | null> {
-  const entry = FILES[slug];
-  if (!entry) return null;
-
-  // Guard against a slug that tries to climb out of the directory, even though
-  // the lookup above already restricts us to known keys.
-  const resolved = path.join(PAPER_DIR, entry.file);
-  if (!resolved.startsWith(PAPER_DIR + path.sep)) return null;
-
-  try {
-    return { bytes: await readFile(resolved), downloadAs: entry.downloadAs };
-  } catch {
-    return null;
-  }
+function safeDownloadName(name: string, fallback: string): string {
+  const cleaned = name.replace(/[/\\?%*:|"<>]/g, "-").trim();
+  if (!cleaned) return fallback;
+  return cleaned.toLowerCase().endsWith(".pdf") ? cleaned : `${cleaned}.pdf`;
 }
 
-export function paperExists(slug: string): boolean {
-  return slug in FILES;
+export async function loadPaper(slug: string): Promise<PaperFile | null> {
+  const overrides = await readOverrides();
+  const fromCms = overrides.insights?.papers?.find((p) => (p.slug ?? "").trim() === slug);
+  const cmsKey = fromCms?.pdfStorageKey?.trim();
+  if (cmsKey) {
+    const bytes = await readPrivatePaper(cmsKey);
+    if (bytes) {
+      return {
+        bytes,
+        downloadAs: safeDownloadName(
+          fromCms?.downloadAs ?? "",
+          `${slug}.pdf`,
+        ),
+      };
+    }
+  }
+
+  const legacy = LEGACY_FILES[slug];
+  if (!legacy) return null;
+
+  const bytes = await readPrivatePaper(legacy.file);
+  if (!bytes) return null;
+  return { bytes, downloadAs: legacy.downloadAs };
+}
+
+/** True when a PDF is available for the slug (CMS upload or seeded file). */
+export async function paperFileReady(slug: string): Promise<boolean> {
+  return (await loadPaper(slug)) !== null;
 }

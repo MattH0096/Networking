@@ -394,6 +394,13 @@ export function buildContent(o: SiteOverrides) {
         tags: [...p.tags],
         signals: p.signals.map((s) => ({ label: s.label, icon: s.icon })),
         coverKey: "insights-cover",
+        // Seeded whitepaper lives in private/papers until replaced via admin upload.
+        pdfStorageKey:
+          p.slug === "distribution-completeness" ? "IST_Whitepaper.pdf" : "",
+        downloadAs:
+          p.slug === "distribution-completeness"
+            ? "IST-Distribution-Completeness-in-Dynamic-Mesh-Networks.pdf"
+            : "",
         sort: index,
       }));
 
@@ -425,6 +432,8 @@ export function buildContent(o: SiteOverrides) {
             tags: (p.tags ?? []).map((t) => t.trim()).filter(Boolean),
             signals,
             coverKey: (p.coverKey ?? "insights-cover").trim() || "insights-cover",
+            pdfStorageKey: (p.pdfStorageKey ?? "").trim(),
+            downloadAs: (p.downloadAs ?? "").trim(),
             sort: index,
           };
         });
@@ -477,6 +486,8 @@ export function buildContent(o: SiteOverrides) {
           tags: [] as string[],
           signals: [] as { label: string; icon: "doc" | "chart" | "review" }[],
           coverKey: "insights-cover",
+          pdfStorageKey: "",
+          downloadAs: "",
           sort: 0,
         },
         upcomingHeading: pick(

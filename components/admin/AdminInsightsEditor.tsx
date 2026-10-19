@@ -38,6 +38,8 @@ function emptyPaper(): Paper {
       { label: "Figures & models", icon: "chart" },
     ],
     coverKey: "insights-cover",
+    pdfStorageKey: "",
+    downloadAs: "",
     sort: 0,
   };
 }
@@ -80,6 +82,41 @@ export function AdminInsightsEditor({ content, images, defaults }: Props) {
     setMessage("Image saved to the live site. You do not need to click Save for images.");
   }
 
+  async function onUploadPdf(index: number, file: File) {
+    const paper = v.papers[index];
+    if (!paper) return;
+    const slug = slugify(paper.slug || paper.title) || paper.id || `paper-${index + 1}`;
+    const busy = `pdf:${paper.id}`;
+    setBusyKey(busy);
+    setMessage(null);
+    const body = new FormData();
+    body.set("slug", slug);
+    body.set("file", file);
+    if (paper.downloadAs) body.set("downloadAs", paper.downloadAs);
+    const res = await fetch("/api/admin/upload-paper", { method: "POST", body });
+    setBusyKey(null);
+    if (!res.ok) {
+      const data = (await res.json().catch(() => null)) as { error?: string } | null;
+      setMessage(data?.error ?? "PDF upload failed.");
+      return;
+    }
+    const data = (await res.json()) as { pdfStorageKey: string; downloadAs: string };
+    set(
+      "papers",
+      v.papers.map((p, j) =>
+        j === index
+          ? {
+              ...p,
+              slug,
+              pdfStorageKey: data.pdfStorageKey,
+              downloadAs: data.downloadAs,
+            }
+          : p,
+      ),
+    );
+    setMessage("PDF uploaded. Click Save Insights to publish it on the live download gate.");
+  }
+
   async function onSave(e: React.FormEvent) {
     e.preventDefault();
     setStatus("saving");
@@ -103,6 +140,8 @@ export function AdminInsightsEditor({ content, images, defaults }: Props) {
           }))
           .filter((s) => s.label),
         coverKey: p.coverKey || "insights-cover",
+        pdfStorageKey: (p.pdfStorageKey ?? "").trim(),
+        downloadAs: (p.downloadAs ?? "").trim(),
       };
     });
 
@@ -162,8 +201,8 @@ export function AdminInsightsEditor({ content, images, defaults }: Props) {
     <form onSubmit={onSave} className="max-w-4xl">
       <h1 className="text-[1.75rem] font-semibold tracking-tight">Insights</h1>
       <p className="mt-2 text-[0.95rem] text-ist-muted">
-        Add, edit, or remove real papers. The public page only shows what you save here — no
-        placeholder cards. PDF downloads still need a matching file on the server for that slug.
+        Add, edit, or remove real papers. Upload each PDF here — it stays private and is only
+        released through the Insights download gate after Save.
       </p>
 
       <div className="mt-8 flex flex-col gap-8">
@@ -358,6 +397,52 @@ export function AdminInsightsEditor({ content, images, defaults }: Props) {
                     multiline
                     rows={2}
                   />
+                  <AdminField
+                    label="Download filename (optional)"
+                    value={paper.downloadAs ?? ""}
+                    onChange={(x) =>
+                      set(
+                        "papers",
+                        v.papers.map((p, j) => (j === i ? { ...p, downloadAs: x } : p)),
+                      )
+                    }
+                  />
+                  <div>
+                    <span className="mb-1.5 block text-[0.7rem] font-medium uppercase tracking-[0.08em] text-ist-dim">
+                      PDF file
+                    </span>
+                    <div className="flex flex-wrap items-center gap-3 border border-ist-line/70 bg-black/50 px-3 py-3">
+                      <p className="min-w-0 flex-1 text-[0.85rem] text-ist-muted">
+                        {paper.pdfStorageKey
+                          ? `Uploaded${paper.downloadAs ? `: ${paper.downloadAs}` : ""}`
+                          : "No PDF yet — upload to enable the download gate."}
+                      </p>
+                      <label className="inline-flex cursor-pointer text-[0.8rem] text-ist-muted hover:text-ist-text">
+                        <span className="border border-ist-line px-2.5 py-1">
+                          {busyKey === `pdf:${paper.id}`
+                            ? "Uploading…"
+                            : paper.pdfStorageKey
+                              ? "Replace PDF"
+                              : "Upload PDF"}
+                        </span>
+                        <input
+                          type="file"
+                          accept="application/pdf,.pdf"
+                          className="sr-only"
+                          disabled={busyKey === `pdf:${paper.id}`}
+                          form="ist-admin-upload"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) void onUploadPdf(i, file);
+                            e.target.value = "";
+                          }}
+                        />
+                      </label>
+                    </div>
+                    <p className="mt-1.5 text-[0.7rem] leading-snug text-ist-dim">
+                      Stored privately (not publicly linked). Click Save Insights after upload.
+                    </p>
+                  </div>
                 </div>
                 <AdminImageSlot
                   imageKey={paper.coverKey || "insights-cover"}

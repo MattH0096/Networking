@@ -11,7 +11,9 @@ const CONTENT_DIR = path.join(process.cwd(), "content");
 const OVERRIDES_PATH = path.join(CONTENT_DIR, "overrides.json");
 const BLOB_PREFIX = "cms/overrides/";
 const UPLOAD_PREFIX = "cms/uploads/";
+const PAPER_PREFIX = "cms/papers/";
 const LATEST_PATH = `${BLOB_PREFIX}latest.json`;
+const PAPER_DIR = path.join(process.cwd(), "private", "papers");
 
 let snapshot: SiteOverrides | null = null;
 
@@ -239,6 +241,68 @@ export async function putUpload(filename: string, data: Buffer, contentType: str
   await fs.mkdir(dir, { recursive: true });
   await fs.writeFile(path.join(dir, filename), data);
   return `/uploads/${filename}`;
+}
+
+/**
+ * Store a gated Insights PDF outside `public/`.
+ * Returns a storage key (Blob pathname or local basename) — never a shareable URL.
+ */
+export async function putPrivatePaper(filename: string, data: Buffer): Promise<string> {
+  const safe = filename.replace(/[^a-z0-9._-]/gi, "-");
+  if (!safe.toLowerCase().endsWith(".pdf")) {
+    throw new Error("Paper uploads must be PDF files.");
+  }
+
+  if (blobEnabled()) {
+    const blob = await put(`${PAPER_PREFIX}${safe}`, data, {
+      access: "private",
+      contentType: "application/pdf",
+      addRandomSuffix: false,
+      allowOverwrite: true,
+      cacheControlMaxAge: 60,
+    });
+    return blob.pathname;
+  }
+
+  if (onVercel()) {
+    throw new Error(
+      "Paper uploads need Vercel Blob. Create a Blob store on the project and redeploy.",
+    );
+  }
+
+  await fs.mkdir(PAPER_DIR, { recursive: true });
+  await fs.writeFile(path.join(PAPER_DIR, safe), data);
+  return safe;
+}
+
+/** Read a gated paper by storage key from `putPrivatePaper` or a seeded local filename. */
+export async function readPrivatePaper(storageKey: string): Promise<Buffer | null> {
+  const key = storageKey.trim();
+  if (!key) return null;
+
+  if (blobEnabled() && (key.startsWith(PAPER_PREFIX) || key.includes("://"))) {
+    for (const access of ["private", "public"] as const) {
+      try {
+        const result = await get(key, { access, useCache: false });
+        if (!result?.stream) continue;
+        const buf = Buffer.from(await new Response(result.stream).arrayBuffer());
+        if (buf.byteLength > 0) return buf;
+      } catch {
+        /* try next */
+      }
+    }
+    return null;
+  }
+
+  const base = path.basename(key);
+  if (!base || base.includes("..")) return null;
+  const resolved = path.join(PAPER_DIR, base);
+  if (!resolved.startsWith(PAPER_DIR + path.sep)) return null;
+  try {
+    return await fs.readFile(resolved);
+  } catch {
+    return null;
+  }
 }
 
 /** Best-effort cleanup of old timestamped override files from earlier CMS versions. */

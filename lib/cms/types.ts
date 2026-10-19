@@ -221,6 +221,13 @@ export type SiteOverrides = {
       tags?: string[];
       signals?: { label?: string; icon?: "doc" | "chart" | "review" }[];
       coverKey?: string;
+      /**
+       * Private PDF storage key from admin upload (local filename under
+       * `private/papers/` or a Vercel Blob pathname). Never a public URL.
+       */
+      pdfStorageKey?: string;
+      /** Filename suggested to the browser on download. */
+      downloadAs?: string;
     }[];
     /** @deprecated singular paper — migrated into papers[] */
     paper?: {

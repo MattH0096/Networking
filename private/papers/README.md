@@ -5,15 +5,16 @@ visitor passes the gate on `/insights`. This directory sits outside `public/`,
 so nothing in it is reachable by URL and a download link cannot be shared to
 bypass the form.
 
-## Adding a paper
+## Preferred: admin upload
 
-1. Drop the PDF in this directory.
-2. Register it in `lib/server/papers.ts` — map the slug to the filename and the
-   name the browser should save it as.
-3. Add the listing to `PAPERS` in `lib/insights.ts`.
+1. Open **Admin → Insights**.
+2. Add or edit a paper, then use **Upload PDF**.
+3. Click **Save Insights**.
 
-## Outstanding
+Uploads are stored privately (local `private/papers/` in development, or
+private Vercel Blob in production) and linked on the paper via `pdfStorageKey`.
 
-**{{TBD}}** — `distribution-completeness-in-dynamic-mesh-networks.pdf` has not
-been supplied. The listing and the gate are live; until the file exists the
-route answers with an honest "not available yet" rather than a broken download.
+## Seeded file
+
+`IST_Whitepaper.pdf` is the seed PDF for the Distribution Completeness paper.
+Replace it anytime from the admin Insights editor.

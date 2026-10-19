@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getSiteContent } from "@/lib/cms/content";
 import { DeliveryNotConfiguredError, deliverLead } from "@/lib/server/deliver";
-import { loadPaper, paperExists } from "@/lib/server/papers";
+import { loadPaper } from "@/lib/server/papers";
 import { clientKey, rateLimit } from "@/lib/server/rate-limit";
 
 const LIMIT = 5;
@@ -23,7 +23,7 @@ export async function POST(request: Request, context: { params: Promise<{ slug: 
   const content = await getSiteContent();
   const listed = content.insights.papers.some((paper) => paper.slug === slug && paper.gated);
 
-  if (!listed || !paperExists(slug)) {
+  if (!listed) {
     return NextResponse.json({ error: "Unknown paper." }, { status: 404 });
   }
 
