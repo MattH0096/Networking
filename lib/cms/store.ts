@@ -244,8 +244,12 @@ export async function putUpload(filename: string, data: Buffer, contentType: str
 }
 
 /**
- * Store a gated Insights PDF outside `public/`.
- * Returns a storage key (Blob pathname or local basename) — never a shareable URL.
+ * Store a gated Insights PDF outside the site `public/` folder.
+ * Returns a storage key (Blob pathname/URL or local basename).
+ *
+ * Prefers private Blob access; falls back to public stores (common on Vercel)
+ * while still serving downloads only through the Insights gate — the admin UI
+ * never exposes the blob URL to visitors.
  */
 export async function putPrivatePaper(filename: string, data: Buffer): Promise<string> {
   const safe = filename.replace(/[^a-z0-9._-]/gi, "-");
@@ -254,14 +258,25 @@ export async function putPrivatePaper(filename: string, data: Buffer): Promise<s
   }
 
   if (blobEnabled()) {
-    const blob = await put(`${PAPER_PREFIX}${safe}`, data, {
-      access: "private",
-      contentType: "application/pdf",
-      addRandomSuffix: false,
-      allowOverwrite: true,
-      cacheControlMaxAge: 60,
-    });
-    return blob.pathname;
+    let lastError: unknown;
+    for (const access of ["private", "public"] as const) {
+      try {
+        const blob = await put(`${PAPER_PREFIX}${safe}`, data, {
+          access,
+          contentType: "application/pdf",
+          addRandomSuffix: false,
+          allowOverwrite: true,
+          cacheControlMaxAge: 60,
+        });
+        // Prefer pathname for private; for public stores pathname still works with get().
+        return blob.pathname || blob.url;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError instanceof Error
+      ? lastError
+      : new Error("Blob paper upload failed for both private and public access.");
   }
 
   if (onVercel()) {
@@ -289,6 +304,18 @@ export async function readPrivatePaper(storageKey: string): Promise<Buffer | nul
         if (buf.byteLength > 0) return buf;
       } catch {
         /* try next */
+      }
+    }
+    // Public blob URL fallback when get() is unavailable for the store mode.
+    if (key.includes("://")) {
+      try {
+        const res = await fetch(key);
+        if (res.ok) {
+          const buf = Buffer.from(await res.arrayBuffer());
+          if (buf.byteLength > 0) return buf;
+        }
+      } catch {
+        /* ignore */
       }
     }
     return null;
